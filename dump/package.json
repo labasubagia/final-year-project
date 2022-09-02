@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dump-post": "node ./script/dump-post.js",
-    "dump-post-to-json": "node ./script/dump-post-to-json.js"
+    "generate": "node ./script/generate.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "nanoid": "^4.0.0"
   }
 }
