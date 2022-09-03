@@ -17,7 +17,7 @@ class ServicePost extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/post`);
+    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_post`);
 
     this.postModel = this.conn.model("Post", {
       title: String,
@@ -32,7 +32,7 @@ class ServiceComment extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/comment`);
+    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_comment`);
 
     this.commentModel = this.conn.model("Comment", {
       post_id: String,
@@ -47,7 +47,7 @@ class ServiceQuery extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/query`);
+    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_query`);
 
     this.commentModel = this.conn.model("Comment", {
       comment_id: String,
@@ -80,8 +80,18 @@ class ServiceQuery extends Service {
   }
 }
 
+const freeDb = async (...services) => {
+  await Promise.allSettled(
+    services.map(async (service) => {
+      await service.free();
+      await service.conn.close(true);
+    })
+  );
+};
+
 module.exports = {
   ServiceComment,
   ServicePost,
   ServiceQuery,
+  freeDb,
 };

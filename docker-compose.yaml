@@ -48,40 +48,40 @@ services:
     restart: always
 
   # Services
-  post:
-    container_name: post
-    build: ./post
+  svc_post:
+    container_name: svc_post
+    build: ./svc_post
     volumes:
-      - ./post:/app
+      - ./svc_post:/app
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/post
+      - MONGO_URL=mongodb://mongo:27017/svc_post
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
       - kafka
     restart: always
-  comment:
-    container_name: comment
-    build: ./comment
+  svc_comment:
+    container_name: svc_comment
+    build: ./svc_comment
     volumes:
-      - ./comment:/app
+      - ./svc_comment:/app
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/comment
+      - MONGO_URL=mongodb://mongo:27017/svc_comment
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
       - kafka
     restart: always
-  query:
-    container_name: query
-    build: ./query
+  svc_query:
+    container_name: svc_query
+    build: ./svc_query
     volumes:
-      - ./query:/app
+      - ./svc_query:/app
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/query
+      - MONGO_URL=mongodb://mongo:27017/svc_query
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
@@ -98,13 +98,13 @@ services:
       - ./api_gateway:/app
     environment:
       - PORT=8080
-      - SERVICE_POST_HOST=http://post:8080
-      - SERVICE_COMMENT_HOST=http://comment:8080
-      - SERVICE_QUERY_HOST=http://query:8080 
+      - SERVICE_POST_HOST=http://svc_post:8080
+      - SERVICE_COMMENT_HOST=http://svc_comment:8080
+      - SERVICE_QUERY_HOST=http://svc_query:8080 
     depends_on:
-      - post
-      - comment
-      - query
+      - svc_post
+      - svc_comment
+      - svc_query
     restart: always
 
 volumes:

@@ -2,17 +2,9 @@ const {
   ServicePost,
   ServiceComment,
   ServiceQuery,
+  freeDb,
 } = require("../helpers/mongo");
-const { getDuration } = require("./utils");
-
-const freeDb = async (...services) => {
-  await Promise.allSettled(
-    services.map(async (service) => {
-      await service.free();
-      await service.conn.close(true);
-    })
-  );
-};
+const { getDuration } = require("../helpers/utils");
 
 const free = async () => {
   return freeDb(new ServicePost(), new ServiceComment(), new ServiceQuery());

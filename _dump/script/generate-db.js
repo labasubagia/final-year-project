@@ -2,12 +2,14 @@ const {
   ServicePost,
   ServiceQuery,
   ServiceComment,
+  freeDb,
 } = require("../helpers/mongo");
-const { getDuration } = require("./utils");
+const { getDuration } = require("../helpers/utils");
 
 const POST_SIZE = Number(process.argv[2] ?? 10_000);
 const COMMENT_EACH_POST_SIZE = Number(process.argv[3] ?? 10);
 const START_FROM = Number(process.argv[4] ?? 1);
+const METHOD = Number(process.argv[5] ?? 0);
 const postLimit = START_FROM + POST_SIZE;
 
 const servicePost = new ServicePost();
@@ -15,6 +17,7 @@ const serviceComment = new ServiceComment();
 const serviceQuery = new ServiceQuery();
 const services = [servicePost, serviceComment, serviceQuery];
 
+// * Use Sequential is Slower but safer
 const generateSequential = async () => {
   try {
     for (let i = START_FROM; i < postLimit; i++) {
@@ -40,7 +43,7 @@ const generateSequential = async () => {
       // Comment Created
       const commentIds = [];
       for (let j = 1; j <= COMMENT_EACH_POST_SIZE; j++) {
-        const commentPayload = { text: `Text ${i}-${j}` };
+        const commentPayload = { post_id: post._id, text: `Text ${i}-${j}` };
         const comment = await serviceComment.commentModel.create(
           commentPayload
         );
@@ -71,11 +74,13 @@ const generateSequential = async () => {
     }
   } catch (error) {
     console.error("Error:", error.message);
+    await freeDb(...services);
   } finally {
     services.forEach((service) => service.conn.close(true));
   }
 };
 
+// * Use bulk is faster but more risky
 const generateBulk = async () => {
   try {
     const postPayloads = [];
@@ -132,18 +137,20 @@ const generateBulk = async () => {
     console.log("All PostQuery Created");
   } catch (error) {
     console.error("Error:", error.message);
+    await freeDb(...services);
   } finally {
     services.forEach((service) => service.conn.close(true));
   }
 };
 
 const main = async () => {
+  const methods = [generateBulk, generateSequential];
   console.log(
     `Create posts from ${START_FROM} to ${
       postLimit - 1
     } with ${COMMENT_EACH_POST_SIZE} comment for each post`
   );
-  const duration = await getDuration(generateBulk);
+  const duration = await getDuration(methods[METHOD]);
   console.log(`Dump posts took ${duration} minutes`);
 };
 
