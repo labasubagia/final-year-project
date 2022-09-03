@@ -1,4 +1,5 @@
-const { createPost, createComment, range, getDuration } = require("./utils");
+const { range, getDuration } = require("../helpers/utils");
+const { createPost, createComment } = require("../helpers/api");
 
 const POST_SIZE = Number(process.argv[2] ?? 10_000);
 const COMMENT_EACH_POST_SIZE = Number(process.argv[3] ?? 10);

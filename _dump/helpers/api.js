@@ -1,4 +1,3 @@
-const { performance } = require("perf_hooks");
 const axios = require("axios");
 
 const API_GATEWAY_HOST = "http://localhost:5000";
@@ -17,23 +16,8 @@ const createComment = async ({ post_id, text }) => {
   return data;
 };
 
-const range = (start, end) => {
-  const length = end - start;
-  return Array.from({ length }, (_, i) => start + i);
-};
-
-const getDuration = async (fn) => {
-  const startTime = performance.now();
-  await fn();
-  const endTime = performance.now();
-  const duration = (endTime - startTime) / 1000 / 60;
-  return duration;
-};
-
 module.exports = {
   createComment,
   createPost,
   API_GATEWAY_HOST,
-  range,
-  getDuration,
 };
