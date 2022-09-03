@@ -14,10 +14,12 @@ services:
     ports:
       - 9092:9092
     volumes:
-      - data_kafka:/var/run/docker.sock
+      # - data_kafka:/var/run/docker.sock
+      - data_kafka:/kafka
     environment:
       - KAFKA_ADVERTISED_HOST_NAME=kafka
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LOG_DIRS=/logs
     depends_on:
       - zookeeper
     restart: always

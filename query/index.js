@@ -11,39 +11,40 @@ const PUBSUB_TOPIC_POST_CREATED = "PostCreated";
 const PUBSUB_TOPIC_COMMENT_CREATED = "CommentCreated";
 const FETCH_POST_DEFAULT_LIMIT = 10;
 
-const Comment = mongoose.model(
-  "comment",
-  new mongoose.Schema(
-    { comment_id: String, post_id: String, text: String },
-    { _id: false }
-  )
+const commentSchema = new mongoose.Schema(
+  { comment_id: String, post_id: String, text: String },
+  { _id: false }
 );
+const Comment = new mongoose.model("Comment", commentSchema);
 
-const Post = mongoose.model(
-  "post",
-  new mongoose.Schema(
-    { post_id: String, title: String, body: String },
-    { _id: false }
-  )
+const postSchema = new mongoose.Schema(
+  {
+    post_id: String,
+    title: String,
+    body: String,
+  },
+  { _id: false }
 );
+const Post = new mongoose.model("Post", postSchema);
 
-const PostQuery = mongoose.model(
-  "post_query",
-  new mongoose.Schema(
-    {
-      title: String,
-      body: String,
-      post_id: { type: String, unique: true },
-      comments: {
-        type: [
-          mongoose.Schema({ comment_id: String, text: String }, { _id: false }),
-        ],
-        default: [],
-      },
+const postQuerySchema = new mongoose.Schema(
+  {
+    title: String,
+    body: String,
+    post_id: { type: String, unique: true },
+    comments: {
+      type: [
+        new mongoose.Schema(
+          { comment_id: String, text: String },
+          { _id: false }
+        ),
+      ],
+      default: [],
     },
-    { _id: false }
-  )
+  },
+  { _id: false }
 );
+const PostQuery = new mongoose.model("Post_Query", postQuerySchema);
 
 const kafka = new Kafka({
   clientId: "service_query",
@@ -113,19 +114,12 @@ app.get("/posts-query", async (req, res) => {
   try {
     const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
     const posts = await Post.aggregate([
+      { $limit: Number(limit) },
       {
         $lookup: {
           from: Comment.collection.name,
-          let: { post_id: "$post_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [{ $eq: ["$post_id", "$$post_id"] }],
-                },
-              },
-            },
-          ],
+          localField: "post_id",
+          foreignField: "post_id",
           as: "comments",
         },
       },
@@ -138,15 +132,14 @@ app.get("/posts-query", async (req, res) => {
           "comments.post_id": "$$REMOVE",
         },
       },
-      { $limit: Number(limit) },
-    ]);
+    ]).allowDiskUse(true);
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 });
 
-mongoose.connect(process.env.MONGO_URL).then(async () => {
+mongoose.connect(process.env.MONGO_URL, { autoIndex: true }).then(async () => {
   await consumer.connect();
   await consumer.subscribe({
     topic: PUBSUB_TOPIC_POST_CREATED,

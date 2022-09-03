@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
 
-const Post = new mongoose.model("post", {
+const Post = new mongoose.model("Post", {
   title: String,
   body: String,
 });

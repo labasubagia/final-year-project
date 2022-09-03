@@ -100,11 +100,14 @@ app.get("/posts-api-comp-parallel", async (req, res) => {
       posts.map(async (post) => {
         let comments = await fetchComments([post._id]);
         comments = comments.map((comment) => {
+          comment.comment_id = comment._id;
           const { _id, post_id, __v, ...used } = comment;
           return used;
         });
         post.comments = comments;
-        return post;
+        post.post_id = post._id;
+        const { _id, __v, ...used } = post;
+        return used;
       })
     );
     res.send(posts);
@@ -121,10 +124,14 @@ app.get("/posts-api-comp-sequential", async (req, res) => {
     for (let post of posts) {
       let comments = await fetchComments([post._id]);
       comments = comments.map((comment) => {
+        comment.comment_id = comment._id;
         const { _id, post_id, __v, ...used } = comment;
         return used;
       });
       post.comments = comments;
+      post.post_id = post._id;
+      delete post._id;
+      delete post.__v;
     }
     res.send(posts);
   } catch (error) {

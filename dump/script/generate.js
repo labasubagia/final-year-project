@@ -1,5 +1,4 @@
-const { performance } = require("perf_hooks");
-const { createPost, createComment, range, startFrom } = require("./utils");
+const { createPost, createComment, range, getDuration } = require("./utils");
 
 const POST_SIZE = Number(process.argv[2] ?? 10_000);
 const COMMENT_EACH_POST_SIZE = Number(process.argv[3] ?? 10);
@@ -45,21 +44,14 @@ const generateWithCommentParallel = async () => {
   }
 };
 
-const run = async (fn) => {
-  const startTime = performance.now();
-  await fn();
-  const endTime = performance.now();
-  const duration = (endTime - startTime) / 1000 / 60;
-  console.log(`Dump posts took ${duration} minutes`);
-};
-
 const main = async () => {
   console.log(
     `Create posts from ${START_FROM} to ${
       postLimit - 1
     } with ${COMMENT_EACH_POST_SIZE} comment for each post`
   );
-  await run(generateSequential);
+  const duration = await getDuration(generateSequential);
+  console.log(`Dump posts took ${duration} minutes`);
 };
 
 main();

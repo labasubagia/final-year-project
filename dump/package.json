@@ -4,13 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "node ./script/generate.js"
+    "generate": "node ./script/generate.js",
+    "generate-db": "node ./script/generate-db.js",
+    "free-db": "node ./script/free-db.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "mongoose": "^6.5.4",
     "nanoid": "^4.0.0"
   }
 }
