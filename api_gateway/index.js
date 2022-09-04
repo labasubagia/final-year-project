@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const os = require("os");
+const { promiseAllInBatches } = require("./utils");
 
 const app = express();
 app.use(express.json({ limit: "500mb" }));
@@ -66,21 +68,17 @@ app.get("/posts-api-comp-id-array", async (req, res) => {
 app.get("/posts-api-comp-parallel", async (req, res) => {
   try {
     let posts = await fetchPost(req.query.limit);
-    // Get comment of each post concurrently
-    posts = await Promise.all(
-      posts.map(async (post) => {
-        let comments = await fetchComments([post._id]);
-        comments = comments.map((comment) => {
-          comment.comment_id = comment._id;
-          const { _id, post_id, __v, ...used } = comment;
-          return used;
-        });
-        post.comments = comments;
-        post.post_id = post._id;
-        const { _id, __v, ...used } = post;
+    posts = await promiseAllInBatches(posts, os.cpus().length, async (post) => {
+      let comments = await fetchComments([post._id]);
+      post.comments = comments.map((comment) => {
+        comment.comment_id = comment._id;
+        const { _id, post_id, __v, ...used } = comment;
         return used;
-      })
-    );
+      });
+      post.post_id = post._id;
+      const { _id, __v, ...used } = post;
+      return used;
+    });
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
