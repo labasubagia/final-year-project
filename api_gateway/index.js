@@ -3,7 +3,7 @@ const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 
 const FETCH_POST_LIMIT_DEFAULT = 10;
@@ -26,35 +26,6 @@ const fetchComments = async (postIds = []) => {
   const data = await res.data;
   return data ?? [];
 };
-
-// Using CQRS: Materialize view
-app.get("/posts-cqrs-materialize", async (req, res) => {
-  try {
-    const limit = req.query.limit ?? FETCH_POST_LIMIT_DEFAULT;
-    const response = await axios.get(
-      `${SERVICE_QUERY_HOST}/posts-materialize`,
-      { params: { limit } }
-    );
-    const data = await response.data;
-    res.send(data);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-// Using CQRS: Local Query
-app.get("/posts-cqrs-query", async (req, res) => {
-  try {
-    const limit = req.query.limit ?? FETCH_POST_LIMIT_DEFAULT;
-    const response = await axios.get(`${SERVICE_QUERY_HOST}/posts-query`, {
-      params: { limit },
-    });
-    const data = await response.data;
-    res.send(data);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
 
 // API Composition: Using ID Array and single request
 app.get("/posts-api-comp-id-array", async (req, res) => {
@@ -134,6 +105,50 @@ app.get("/posts-api-comp-sequential", async (req, res) => {
       delete post.__v;
     }
     res.send(posts);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Using CQRS: Materialize view
+app.get("/posts-cqrs-materialize", async (req, res) => {
+  try {
+    const limit = req.query.limit ?? FETCH_POST_LIMIT_DEFAULT;
+    const response = await axios.get(
+      `${SERVICE_QUERY_HOST}/posts-materialize`,
+      { params: { limit } }
+    );
+    const data = await response.data;
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Using CQRS: Aggregate Query
+app.get("/posts-cqrs-query-agg", async (req, res) => {
+  try {
+    const limit = req.query.limit ?? FETCH_POST_LIMIT_DEFAULT;
+    const response = await axios.get(`${SERVICE_QUERY_HOST}/posts-query-agg`, {
+      params: { limit },
+    });
+    const data = await response.data;
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Using CQRS: Manual Relation
+app.get("/posts-cqrs-query-manual", async (req, res) => {
+  try {
+    const limit = req.query.limit ?? FETCH_POST_LIMIT_DEFAULT;
+    const response = await axios.get(
+      `${SERVICE_QUERY_HOST}/posts-query-manual`,
+      { params: { limit } }
+    );
+    const data = await response.data;
+    res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

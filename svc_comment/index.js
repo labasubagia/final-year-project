@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const { Kafka } = require("kafkajs");
 
 const app = express();
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 
 const Comment = new mongoose.model("Comment", {

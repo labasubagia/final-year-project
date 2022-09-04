@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const { Kafka } = require("kafkajs");
 
 const app = express();
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 
 const PUBSUB_TOPIC_POST_CREATED = "PostCreated";
@@ -109,8 +109,8 @@ app.get("/posts-materialize", async (req, res) => {
   }
 });
 
-// CQRS: Normal Query Relation
-app.get("/posts-query", async (req, res) => {
+// CQRS: Aggregate Query Relation
+app.get("/posts-query-agg", async (req, res) => {
   try {
     const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
     const posts = await Post.aggregate([
@@ -133,6 +133,33 @@ app.get("/posts-query", async (req, res) => {
         },
       },
     ]).allowDiskUse(true);
+    res.send(posts);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// CQRS: Manual Relation
+app.get("/posts-query-manual", async (req, res) => {
+  try {
+    const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
+    let posts = await Post.find({}, { _id: 0, __v: 0 }).limit(limit);
+    const postIds = posts.map((p) => p.post_id);
+    let comments = await Comment.find({ post_id: { $in: postIds } });
+    posts = posts.map((post) => {
+      const postComments = [];
+      const restComments = [];
+      comments.forEach((comment) => {
+        if (post.post_id == comment.post_id) {
+          const { _id, __v, post_id, ...used } = comment.toObject();
+          postComments.push(used);
+        } else {
+          restComments.push(comment);
+        }
+      });
+      comments = restComments;
+      return { ...post.toObject(), comments: postComments };
+    });
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });

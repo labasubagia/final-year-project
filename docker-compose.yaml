@@ -3,13 +3,18 @@ version: '3.9'
 services:
   # Message Broker
   zookeeper:
-    container_name: zookeeper
+    # container_name: zookeeper
     image: wurstmeister/zookeeper
     ports:
       - 2181:2181
     restart: always
+    deploy:
+        resources:
+          limits:
+            cpus: '0.1'
+            memory: 128M
   kafka:
-    container_name: kafka
+    # container_name: kafka
     image: wurstmeister/kafka
     ports:
       - 9092:9092
@@ -23,9 +28,14 @@ services:
     depends_on:
       - zookeeper
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
   kafka-ui:
     image: provectuslabs/kafka-ui
-    container_name: kafka-ui
+    # container_name: kafka-ui
     ports:  
       - 8081:8080
     restart: always
@@ -36,20 +46,32 @@ services:
     depends_on:
       - zookeeper
       - kafka
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+    profiles:
+      - donotstart
 
   # Databases
   mongo:
-    container_name: mongo
+    # container_name: mongo
     image: mongo
     ports:
       - 27017:27017
     volumes:
       - data_mongo:/data/db
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
 
   # Services
   svc_post:
-    container_name: svc_post
+    # container_name: svc_post
     build: ./svc_post
     volumes:
       - ./svc_post:/app
@@ -61,8 +83,14 @@ services:
       - mongo
       - kafka
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+
   svc_comment:
-    container_name: svc_comment
+    # container_name: svc_comment
     build: ./svc_comment
     volumes:
       - ./svc_comment:/app
@@ -74,8 +102,14 @@ services:
       - mongo
       - kafka
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+
   svc_query:
-    container_name: svc_query
+    # container_name: svc_query
     build: ./svc_query
     volumes:
       - ./svc_query:/app
@@ -87,10 +121,16 @@ services:
       - mongo
       - kafka
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+
 
   # API Gateway
   api_gateway:
-    container_name: api_gateway
+    # container_name: api_gateway
     build: ./api_gateway
     ports:
       - 5000:8080
@@ -106,6 +146,11 @@ services:
       - svc_comment
       - svc_query
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
 
 volumes:
   data_kafka:
