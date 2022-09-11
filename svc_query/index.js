@@ -111,14 +111,17 @@ const commentCreatedHandler = async ({ _id, post_id, text }) => {
 app.get("/posts-materialize", async (req, res) => {
   try {
     const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
-    const posts = await PostQuery.find({}, { _id: 0, __v: 0 }).limit(limit);
+    const posts = await PostQuery.aggregate([
+      { $limit: Number(limit) },
+      { $addFields: { _id: "$$REMOVE", __v: "$$REMOVE" } },
+    ]).allowDiskUse(true);
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 });
 
-// CQRS: Aggregate Query Relation
+// CQRS: Single Aggregate Query Relation
 app.get("/posts-query-agg", async (req, res) => {
   try {
     const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
@@ -152,24 +155,28 @@ app.get("/posts-query-agg", async (req, res) => {
 app.get("/posts-query-manual", async (req, res) => {
   try {
     const limit = req.query.limit ?? FETCH_POST_DEFAULT_LIMIT;
-    let posts = await Post.find({}, { _id: 0, __v: 0 }).limit(limit);
+    let posts = await Post.aggregate([
+      { $limit: Number(limit) },
+      { $addFields: { _id: "$$REMOVE", __v: "$$REMOVE" } },
+    ]).allowDiskUse(true);
+
     const postIds = posts.map((p) => p.post_id);
-    let comments = await Comment.find({ post_id: { $in: postIds } });
+    let comments = await Comment.aggregate([
+      { $match: { post_id: { $in: postIds } } },
+      { $addFields: { _id: "$$REMOVE", __v: "$$REMOVE" } },
+    ]).allowDiskUse(true);
+
     posts = posts.map((post) => {
-      post = post.toObject();
-      const postComments = [];
-      const restComments = [];
-      comments.forEach((comment) => {
-        if (post.post_id.toString() == comment.post_id.toString()) {
-          const { _id, __v, post_id, ...used } = comment.toObject();
-          postComments.push(used);
-        } else {
-          restComments.push(comment);
-        }
+      post.comments = [];
+      comments = comments.filter((comment) => {
+        if (String(post.post_id) != String(comment.post_id)) return true;
+        const { post_id, ...used } = comment;
+        post.comments.push(used);
+        return false;
       });
-      comments = restComments;
-      return { ...post, comments: postComments };
+      return post;
     });
+
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });

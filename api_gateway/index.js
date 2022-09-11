@@ -21,7 +21,15 @@ const fetchPost = async (limit = FETCH_POST_LIMIT_DEFAULT) => {
   return data ?? [];
 };
 
-const fetchComments = async (postIds = []) => {
+const fetchCommentsByPostId = async (postId) => {
+  const url = `${SERVICE_COMMENT_HOST}/search-comments-by-post-id`;
+  const body = { post_id: postId };
+  const res = await axios.post(url, body);
+  const data = await res.data;
+  return data ?? [];
+};
+
+const fetchCommentsByPostIds = async (postIds = []) => {
   const url = `${SERVICE_COMMENT_HOST}/search-comments-by-post-ids`;
   const body = { post_ids: postIds };
   const res = await axios.post(url, body);
@@ -36,29 +44,20 @@ app.get("/", (req, res) => res.send({ message: "Ok!" }));
 app.get("/posts-api-comp-id-array", async (req, res) => {
   try {
     let posts = await fetchPost(req.query.limit);
-    const postIds = posts.map((post) => post._id);
+    const postIds = posts.map((post) => post.post_id);
 
     // Get comment of all post at once
-    let comments = await fetchComments(postIds);
+    let comments = await fetchCommentsByPostIds(postIds);
 
     posts = posts.map((post) => {
       post.comments = [];
-      const restComments = [];
-
-      comments.forEach((comment) => {
-        if (comment.post_id == post._id) {
-          comment.comment_id = comment._id;
-          const { _id, post_id, __v, ...used } = comment;
-          post.comments.push(used);
-        } else {
-          restComments.push(comment);
-        }
+      comments = comments.filter((comment) => {
+        if (comment.post_id != post.post_id) return true;
+        const { post_id, ...used } = comment;
+        post.comments.push(used);
+        return false;
       });
-      comments = restComments;
-
-      post.post_id = post._id;
-      const { _id, __v, ...used } = post;
-      return used;
+      return post;
     });
 
     res.send(posts);
@@ -71,17 +70,12 @@ app.get("/posts-api-comp-id-array", async (req, res) => {
 app.get("/posts-api-comp-parallel", async (req, res) => {
   try {
     let posts = await fetchPost(req.query.limit);
+    console.log({ p: posts.length });
     posts = await promiseAllInBatches(posts, os.cpus().length, async (post) => {
-      let comments = await fetchComments([post._id]);
-      post.comments = comments.map((comment) => {
-        comment.comment_id = comment._id;
-        const { _id, post_id, __v, ...used } = comment;
-        return used;
-      });
-      post.post_id = post._id;
-      const { _id, __v, ...used } = post;
-      return used;
+      post.comments = await fetchCommentsByPostId(post.post_id);
+      return post;
     });
+    console.log({ posts });
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
@@ -94,16 +88,7 @@ app.get("/posts-api-comp-sequential", async (req, res) => {
     const posts = await fetchPost(req.query.limit);
     // Get comment of each post one by one
     for (let post of posts) {
-      let comments = await fetchComments([post._id]);
-      comments = comments.map((comment) => {
-        comment.comment_id = comment._id;
-        const { _id, post_id, __v, ...used } = comment;
-        return used;
-      });
-      post.comments = comments;
-      post.post_id = post._id;
-      delete post._id;
-      delete post.__v;
+      post.comments = await fetchCommentsByPostId(post.post_id);
     }
     res.send(posts);
   } catch (error) {

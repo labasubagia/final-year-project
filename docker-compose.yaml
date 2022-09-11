@@ -7,11 +7,11 @@ services:
     ports:
       - 2181:2181
     restart: always
-    deploy:
-        resources:
-          limits:
-            cpus: '0.1'
-            memory: 128M
+    # deploy:
+    #     resources:
+    #       limits:
+    #         cpus: '0.1'
+    #         memory: 128M
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -26,11 +26,11 @@ services:
     depends_on:
       - zookeeper
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
   kafka_ui:
     image: provectuslabs/kafka-ui
     ports:  
@@ -43,13 +43,13 @@ services:
     depends_on:
       - zookeeper
       - kafka
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
-    # profiles:
-    #   - donotstart
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
+    profiles:
+      - donotstart
 
   # Databases
   mongo:
@@ -59,11 +59,11 @@ services:
     volumes:
       - data_mongo:/data/db
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 256M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 256M
 
   # Services
   svc_post:
@@ -78,11 +78,11 @@ services:
       - mongo
       - kafka
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
 
   svc_comment:
     build: ./svc_comment
@@ -96,11 +96,11 @@ services:
       - mongo
       - kafka
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
 
   svc_query:
     build: ./svc_query
@@ -114,11 +114,11 @@ services:
       - mongo
       - kafka
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
 
 
   # API Gateway
@@ -138,11 +138,11 @@ services:
       - svc_comment
       - svc_query
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
 
   stats:
     image: virtualzone/docker-container-stats
@@ -153,11 +153,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - data_stats:/opt/docker-stats/db
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.1'
+    #       memory: 128M
+    profiles:
+      - donotstart
+
 
 volumes:
   data_kafka:

@@ -27,10 +27,33 @@ app.get("/comments", async (_, res) => {
   }
 });
 
+app.post("/search-comments-by-post-id", async (req, res) => {
+  try {
+    const { post_id } = req.body;
+    const comments = await Comment.aggregate([
+      { $match: { post_id: mongoose.Types.ObjectId(post_id) } },
+      {
+        $addFields: {
+          comment_id: "$_id",
+          post_id: "$$REMOVE",
+          _id: "$$REMOVE",
+          __v: "$$REMOVE",
+        },
+      },
+    ]).allowDiskUse(true);
+    res.send(comments);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 app.post("/search-comments-by-post-ids", async (req, res) => {
   try {
     const { post_ids } = req.body;
-    const comments = await Comment.find({ post_id: { $in: post_ids } });
+    const comments = await Comment.aggregate([
+      { $match: { post_id: { $in: post_ids.map(mongoose.Types.ObjectId) } } },
+      { $addFields: { comment_id: "$_id", _id: "$$REMOVE", __v: "$$REMOVE" } },
+    ]).allowDiskUse(true);
     res.send(comments);
   } catch (error) {
     res.status(500).send({ error: error.message });

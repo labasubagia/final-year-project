@@ -21,7 +21,10 @@ const producer = kafka.producer();
 app.get("/posts", async (req, res) => {
   try {
     const limit = req.query.limit ?? 10;
-    const posts = await Post.find().limit(limit);
+    const posts = await Post.aggregate([
+      { $limit: Number(limit) },
+      { $addFields: { _id: "$$REMOVE", __v: "$$REMOVE", post_id: "$_id" } },
+    ]).allowDiskUse(true);
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
