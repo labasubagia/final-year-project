@@ -29,6 +29,9 @@ const fetchComments = async (postIds = []) => {
   return data ?? [];
 };
 
+// Index
+app.get("/", (req, res) => res.send({ message: "Ok!" }));
+
 // API Composition: Using ID Array and single request
 app.get("/posts-api-comp-id-array", async (req, res) => {
   try {

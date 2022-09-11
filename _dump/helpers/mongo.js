@@ -35,7 +35,7 @@ class ServiceComment extends Service {
     this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_comment`);
 
     this.commentModel = this.conn.model("Comment", {
-      post_id: String,
+      post_id: { type: mongoose.ObjectId, index: true },
       text: String,
     });
 
@@ -50,13 +50,13 @@ class ServiceQuery extends Service {
     this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_query`);
 
     this.commentModel = this.conn.model("Comment", {
-      comment_id: String,
-      post_id: String,
+      comment_id: { type: mongoose.ObjectId, index: true },
+      post_id: { type: mongoose.ObjectId, index: true },
       text: String,
     });
 
     this.postModel = this.conn.model("Post", {
-      post_id: String,
+      post_id: { type: mongoose.ObjectId, index: true },
       title: String,
       body: String,
     });
@@ -64,11 +64,14 @@ class ServiceQuery extends Service {
     this.postQueryModel = this.conn.model("Post_Query", {
       title: String,
       body: String,
-      post_id: { type: String, unique: true },
+      post_id: { type: mongoose.ObjectId, index: { unique: true } },
       comments: {
         type: [
           new mongoose.Schema(
-            { comment_id: String, text: String },
+            {
+              comment_id: { type: mongoose.ObjectId, index: true },
+              text: String,
+            },
             { _id: false }
           ),
         ],

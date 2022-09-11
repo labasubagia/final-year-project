@@ -12,14 +12,18 @@ const PUBSUB_TOPIC_COMMENT_CREATED = "CommentCreated";
 const FETCH_POST_DEFAULT_LIMIT = 10;
 
 const commentSchema = new mongoose.Schema(
-  { comment_id: String, post_id: String, text: String },
+  {
+    comment_id: { type: mongoose.ObjectId, index: true },
+    post_id: { type: mongoose.ObjectId, index: true },
+    text: String,
+  },
   { _id: false }
 );
 const Comment = new mongoose.model("Comment", commentSchema);
 
 const postSchema = new mongoose.Schema(
   {
-    post_id: String,
+    post_id: { type: mongoose.ObjectId, index: true },
     title: String,
     body: String,
   },
@@ -31,11 +35,14 @@ const postQuerySchema = new mongoose.Schema(
   {
     title: String,
     body: String,
-    post_id: { type: String, unique: true },
+    post_id: { type: mongoose.ObjectId, index: { unique: true } },
     comments: {
       type: [
         new mongoose.Schema(
-          { comment_id: String, text: String },
+          {
+            comment_id: { type: mongoose.ObjectId, index: true },
+            text: String,
+          },
           { _id: false }
         ),
       ],
@@ -54,6 +61,8 @@ const consumer = kafka.consumer({ groupId: "service_query" });
 
 const postCreatedHandler = async ({ _id, title, body }) => {
   try {
+    console.log({ post_id: _id, title, body });
+
     // Materialize Query / Table View
     await PostQuery.findOneAndUpdate(
       { post_id: _id },
@@ -147,10 +156,11 @@ app.get("/posts-query-manual", async (req, res) => {
     const postIds = posts.map((p) => p.post_id);
     let comments = await Comment.find({ post_id: { $in: postIds } });
     posts = posts.map((post) => {
+      post = post.toObject();
       const postComments = [];
       const restComments = [];
       comments.forEach((comment) => {
-        if (post.post_id == comment.post_id) {
+        if (post.post_id.toString() == comment.post_id.toString()) {
           const { _id, __v, post_id, ...used } = comment.toObject();
           postComments.push(used);
         } else {
@@ -158,7 +168,7 @@ app.get("/posts-query-manual", async (req, res) => {
         }
       });
       comments = restComments;
-      return { ...post.toObject(), comments: postComments };
+      return { ...post, comments: postComments };
     });
     res.send(posts);
   } catch (error) {

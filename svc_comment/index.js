@@ -8,7 +8,7 @@ app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 
 const Comment = new mongoose.model("Comment", {
-  post_id: String,
+  post_id: { type: mongoose.ObjectId, index: true },
   text: String,
 });
 
