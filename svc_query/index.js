@@ -166,10 +166,13 @@ app.get("/posts-query-manual", async (req, res) => {
       { $addFields: { _id: "$$REMOVE", __v: "$$REMOVE" } },
     ]).allowDiskUse(true);
 
+    posts = JSON.parse(JSON.stringify(posts));
+    comments = JSON.parse(JSON.stringify(comments));
+
     posts = posts.map((post) => {
       post.comments = [];
       comments = comments.filter((comment) => {
-        if (String(post.post_id) != String(comment.post_id)) return true;
+        if (post.post_id != comment.post_id) return true;
         const { post_id, ...used } = comment;
         post.comments.push(used);
         return false;
