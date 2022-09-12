@@ -111,7 +111,7 @@ const generateBatch = async () => {
     let comments = await serviceComment.commentModel.insertMany(
       commentPayloads
     );
-    comments = await serviceQuery.commentModel.insertMany(
+    await serviceQuery.commentModel.insertMany(
       comments.map(({ text, post_id, _id }) => ({
         post_id,
         comment_id: _id,
@@ -138,15 +138,12 @@ const generateBatch = async () => {
       comments = restComments;
       return { post_id: _id, title, body, comments: commentPayloads };
     });
-    const query = await serviceQuery.postQueryModel.insertMany(
-      postQueryPayloads
-    );
+    await serviceQuery.postQueryModel.insertMany(postQueryPayloads);
     return {
       start,
       end: end - 1,
       posts: posts.length,
       comments: commentLen,
-      postQueries: query.length,
     };
   };
 
