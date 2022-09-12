@@ -10,17 +10,18 @@ const POST_SIZE = Number(process.argv[2] ?? 10_000);
 const COMMENT_EACH_POST_SIZE = Number(process.argv[3] ?? 10);
 const START_FROM = Number(process.argv[4] ?? 1);
 const METHOD = Number(process.argv[5] ?? 0);
+const BATCH_COUNT = Number(process.argv[6] ?? 1);
 const postLimit = START_FROM + POST_SIZE;
 
-const servicePost = new ServicePost();
-const serviceComment = new ServiceComment();
-const serviceQuery = new ServiceQuery();
-const services = [servicePost, serviceComment, serviceQuery];
-
 // * Use Sequential is Slower but safer
-const generateSequential = async () => {
+const generateSequential = async (start = START_FROM, end = postLimit) => {
+  const servicePost = new ServicePost();
+  const serviceComment = new ServiceComment();
+  const serviceQuery = new ServiceQuery();
+  const services = [servicePost, serviceComment, serviceQuery];
+
   try {
-    for (let i = START_FROM; i < postLimit; i++) {
+    for (let i = start; i < end; i++) {
       // Post Created
       const postPayload = { title: `Title ${i}`, body: `Body ${i}` };
       const post = await servicePost.postModel.create(postPayload);
@@ -81,20 +82,25 @@ const generateSequential = async () => {
 };
 
 // * Use bulk is faster but more risky
-const generateBulk = async () => {
+const generateBulk = async (start = START_FROM, end = postLimit) => {
+  const servicePost = new ServicePost();
+  const serviceComment = new ServiceComment();
+  const serviceQuery = new ServiceQuery();
+  const services = [servicePost, serviceComment, serviceQuery];
+
   try {
     const postPayloads = [];
     const commentPayloads = [];
 
     // Comment Created
-    for (let i = START_FROM; i < postLimit; i++) {
+    for (let i = start; i < end; i++) {
       postPayloads.push({ title: `Title ${i}`, body: `Body ${i}` });
     }
     const posts = await servicePost.postModel.insertMany(postPayloads);
     await serviceQuery.postModel.insertMany(
       posts.map(({ title, body, _id }) => ({ post_id: _id, title, body }))
     );
-    console.log("All Post Created");
+    console.log(`Create ${posts.length} posts, ${start}-${end - 1} `);
 
     // Post Created
     posts.forEach((post) => {
@@ -106,14 +112,14 @@ const generateBulk = async () => {
     let comments = await serviceComment.commentModel.insertMany(
       commentPayloads
     );
-    await serviceQuery.commentModel.insertMany(
+    comments = await serviceQuery.commentModel.insertMany(
       comments.map(({ text, post_id, _id }) => ({
         post_id,
         comment_id: _id,
         text,
       }))
     );
-    console.log("All Comment Created");
+    console.log(`Created ${comments.length} comments`);
 
     // Materialize
     const postQueryPayloads = posts.map(({ _id, title, body }) => {
@@ -133,8 +139,10 @@ const generateBulk = async () => {
       comments = restComments;
       return { post_id: _id, title, body, comments: commentPayloads };
     });
-    await serviceQuery.postQueryModel.insertMany(postQueryPayloads);
-    console.log("All PostQuery Created");
+    const query = await serviceQuery.postQueryModel.insertMany(
+      postQueryPayloads
+    );
+    console.log(`Created ${query.length} post queries`);
   } catch (error) {
     console.error("Error:", error.message);
     await freeDb(...services);
@@ -143,14 +151,37 @@ const generateBulk = async () => {
   }
 };
 
+const generateBatchBulk = async () => {
+  const fn = generateBulk;
+  const n = BATCH_COUNT;
+  const perBatch = Math.ceil(POST_SIZE / n);
+
+  let start = START_FROM;
+
+  if (n == 1) {
+    await fn(start, POST_SIZE);
+    return;
+  }
+
+  let i = 1;
+  while (start <= POST_SIZE) {
+    console.log(`Inserting batch ${i}...`);
+    await fn(start, start + perBatch);
+    console.log(`Insert batch ${i} finished\n`);
+    start += perBatch;
+    i++;
+  }
+};
+
 const main = async () => {
-  const methods = [generateBulk, generateSequential];
+  const methods = [generateBatchBulk, generateSequential];
+  const fn = methods[METHOD];
   console.log(
     `Create posts from ${START_FROM} to ${
       postLimit - 1
     } with ${COMMENT_EACH_POST_SIZE} comment for each post`
   );
-  const duration = await getDuration(methods[METHOD]);
+  const duration = await getDuration(fn);
   console.log(`Dump posts took ${duration} minutes`);
 };
 
