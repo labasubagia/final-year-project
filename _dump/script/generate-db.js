@@ -82,13 +82,13 @@ const generateSequential = async (start = START_FROM, end = postLimit) => {
 };
 
 // * Use bulk is faster but more risky
-const generateBulk = async (start = START_FROM, end = postLimit) => {
+const generateBatch = async () => {
   const servicePost = new ServicePost();
   const serviceComment = new ServiceComment();
   const serviceQuery = new ServiceQuery();
   const services = [servicePost, serviceComment, serviceQuery];
 
-  try {
+  const insertBulk = async (start = START_FROM, end = postLimit) => {
     const postPayloads = [];
     const commentPayloads = [];
 
@@ -100,7 +100,7 @@ const generateBulk = async (start = START_FROM, end = postLimit) => {
     await serviceQuery.postModel.insertMany(
       posts.map(({ title, body, _id }) => ({ post_id: _id, title, body }))
     );
-    console.log(`Create ${posts.length} posts, ${start}-${end - 1} `);
+    console.log(`Created ${posts.length} posts, ${start}-${end - 1} `);
 
     // Post Created
     posts.forEach((post) => {
@@ -143,6 +143,28 @@ const generateBulk = async (start = START_FROM, end = postLimit) => {
       postQueryPayloads
     );
     console.log(`Created ${query.length} post queries`);
+  };
+
+  try {
+    const fn = insertBulk;
+    const n = BATCH_COUNT;
+    const perBatch = Math.ceil(POST_SIZE / n);
+
+    let start = START_FROM;
+
+    if (n == 1) {
+      await fn(start, POST_SIZE);
+      return;
+    }
+
+    let i = 1;
+    while (start <= POST_SIZE) {
+      console.log(`Inserting batch ${i}...`);
+      await fn(start, start + perBatch);
+      console.log(`Insert batch ${i} finished\n`);
+      start += perBatch;
+      i++;
+    }
   } catch (error) {
     console.error("Error:", error.message);
     await freeDb(...services);
@@ -151,30 +173,8 @@ const generateBulk = async (start = START_FROM, end = postLimit) => {
   }
 };
 
-const generateBatchBulk = async () => {
-  const fn = generateBulk;
-  const n = BATCH_COUNT;
-  const perBatch = Math.ceil(POST_SIZE / n);
-
-  let start = START_FROM;
-
-  if (n == 1) {
-    await fn(start, POST_SIZE);
-    return;
-  }
-
-  let i = 1;
-  while (start <= POST_SIZE) {
-    console.log(`Inserting batch ${i}...`);
-    await fn(start, start + perBatch);
-    console.log(`Insert batch ${i} finished\n`);
-    start += perBatch;
-    i++;
-  }
-};
-
 const main = async () => {
-  const methods = [generateBatchBulk, generateSequential];
+  const methods = [generateBatch, generateSequential];
   const fn = methods[METHOD];
   console.log(
     `Create posts from ${START_FROM} to ${
