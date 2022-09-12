@@ -160,7 +160,7 @@ const generateBatch = async () => {
     const lastEnd = POST_SIZE + 1;
 
     if (batchSize == 1) {
-      await fn(start, POST_SIZE);
+      await fn(start, lastEnd);
       return;
     }
 
