@@ -29,52 +29,52 @@
           </elementProp>
           <elementProp name="data_limit_p1" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p1</stringProp>
-            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p2" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p2</stringProp>
-            <stringProp name="Argument.value">200</stringProp>
+            <stringProp name="Argument.value">20</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p3" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p3</stringProp>
-            <stringProp name="Argument.value">300</stringProp>
+            <stringProp name="Argument.value">30</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p4" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p4</stringProp>
-            <stringProp name="Argument.value">400</stringProp>
+            <stringProp name="Argument.value">40</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p5" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p5</stringProp>
-            <stringProp name="Argument.value">500</stringProp>
+            <stringProp name="Argument.value">50</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p6" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p6</stringProp>
-            <stringProp name="Argument.value">600</stringProp>
+            <stringProp name="Argument.value">60</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p7" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p7</stringProp>
-            <stringProp name="Argument.value">700</stringProp>
+            <stringProp name="Argument.value">70</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p8" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p8</stringProp>
-            <stringProp name="Argument.value">800</stringProp>
+            <stringProp name="Argument.value">80</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p9" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p9</stringProp>
-            <stringProp name="Argument.value">900</stringProp>
+            <stringProp name="Argument.value">90</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_limit_p10" elementType="Argument">
             <stringProp name="Argument.name">data_limit_p10</stringProp>
-            <stringProp name="Argument.value">1000</stringProp>
+            <stringProp name="Argument.value">100</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="path_cqrs_materialized" elementType="Argument">
