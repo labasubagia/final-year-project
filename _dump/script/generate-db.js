@@ -154,6 +154,7 @@ const generateBatch = async () => {
     const fn = insertBulk;
     const batchSize = BATCH_SIZE;
     const batchCount = Math.ceil(POST_SIZE / batchSize);
+    console.log(`Total ${batchCount} batch with each size ${batchSize}`);
 
     let start = START_FROM;
     const lastEnd = POST_SIZE + 1;
