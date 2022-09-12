@@ -10,7 +10,7 @@ const POST_SIZE = Number(process.argv[2] ?? 10_000);
 const COMMENT_EACH_POST_SIZE = Number(process.argv[3] ?? 10);
 const START_FROM = Number(process.argv[4] ?? 1);
 const METHOD = Number(process.argv[5] ?? 0);
-const BATCH_COUNT = Number(process.argv[6] ?? 1);
+const BATCH_SIZE = Number(process.argv[6] ?? 1);
 const postLimit = START_FROM + POST_SIZE;
 
 // * Use Sequential is Slower but safer
@@ -100,7 +100,6 @@ const generateBatch = async () => {
     await serviceQuery.postModel.insertMany(
       posts.map(({ title, body, _id }) => ({ post_id: _id, title, body }))
     );
-    console.log(`Created ${posts.length} posts, ${start}-${end - 1} `);
 
     // Post Created
     posts.forEach((post) => {
@@ -119,7 +118,7 @@ const generateBatch = async () => {
         text,
       }))
     );
-    console.log(`Created ${comments.length} comments`);
+    const commentLen = comments.length;
 
     // Materialize
     const postQueryPayloads = posts.map(({ _id, title, body }) => {
@@ -142,28 +141,34 @@ const generateBatch = async () => {
     const query = await serviceQuery.postQueryModel.insertMany(
       postQueryPayloads
     );
-    console.log(`Created ${query.length} post queries`);
+    return {
+      start,
+      end: end - 1,
+      posts: posts.length,
+      comments: commentLen,
+      postQueries: query.length,
+    };
   };
 
   try {
     const fn = insertBulk;
-    const n = BATCH_COUNT;
-    const perBatch = Math.ceil(POST_SIZE / n);
+    const batchSize = BATCH_SIZE;
+    const batchCount = Math.ceil(POST_SIZE / batchSize);
 
     let start = START_FROM;
+    const lastEnd = POST_SIZE + 1;
 
-    if (n == 1) {
+    if (batchSize == 1) {
       await fn(start, POST_SIZE);
       return;
     }
 
-    let i = 1;
-    while (start <= POST_SIZE) {
-      console.log(`Inserting batch ${i}...`);
-      await fn(start, start + perBatch);
-      console.log(`Insert batch ${i} finished\n`);
-      start += perBatch;
-      i++;
+    for (let i = 1; i <= batchCount; i++) {
+      let end = start + batchSize;
+      end = end > lastEnd ? lastEnd : end;
+      const info = await fn(start, end);
+      console.log(`Batch ${i}`, info);
+      start += batchSize;
     }
   } catch (error) {
     console.error("Error:", error.message);

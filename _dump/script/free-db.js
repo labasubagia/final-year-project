@@ -12,8 +12,8 @@ const free = async () => {
 
 const main = async () => {
   console.log("Clearing all collection...");
-  const duration = await getDuration(free);
-  console.log(`Clear all collection took ${duration} minutes`);
+  const duration = (await getDuration(free)) * 60;
+  console.log(`Clear all collection took ${duration} seconds`);
 };
 
 main();
