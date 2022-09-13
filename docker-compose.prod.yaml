@@ -61,8 +61,6 @@ services:
     build: 
       context: ./svc_comment
       dockerfile: docker/prod.Dockerfile
-    volumes:
-      - ./svc_comment:/app
     environment:
       - PORT=8080
       - MONGO_URL=mongodb://mongo:27017/svc_comment
@@ -76,8 +74,6 @@ services:
     build: 
       context: ./svc_query
       dockerfile: docker/prod.Dockerfile
-    volumes:
-      - ./svc_query:/app
     environment:
       - PORT=8080
       - MONGO_URL=mongodb://mongo:27017/svc_query
