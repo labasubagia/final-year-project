@@ -7,11 +7,6 @@ services:
     ports:
       - 2181:2181
     restart: always
-    # deploy:
-    #     resources:
-    #       limits:
-    #         cpus: '0.1'
-    #         memory: 128M
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -26,11 +21,6 @@ services:
     depends_on:
       - zookeeper
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
   kafka_ui:
     image: provectuslabs/kafka-ui
     ports:  
@@ -43,11 +33,6 @@ services:
     depends_on:
       - zookeeper
       - kafka
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
     profiles:
       - donotstart
 
@@ -56,20 +41,13 @@ services:
     image: mongo
     ports:
       - 27017:27017
-    volumes:
-      - data_mongo:/data/db
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 256M
 
   # Services
   svc_post:
-    build: ./svc_post
-    volumes:
-      - ./svc_post:/app
+    build: 
+      context: ./svc_post
+      dockerfile: docker/prod.Dockerfile
     environment:
       - PORT=8080
       - MONGO_URL=mongodb://mongo:27017/svc_post
@@ -78,14 +56,11 @@ services:
       - mongo
       - kafka
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
 
   svc_comment:
-    build: ./svc_comment
+    build: 
+      context: ./svc_comment
+      dockerfile: docker/prod.Dockerfile
     volumes:
       - ./svc_comment:/app
     environment:
@@ -96,14 +71,11 @@ services:
       - mongo
       - kafka
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
 
   svc_query:
-    build: ./svc_query
+    build: 
+      context: ./svc_query
+      dockerfile: docker/prod.Dockerfile
     volumes:
       - ./svc_query:/app
     environment:
@@ -114,20 +86,14 @@ services:
       - mongo
       - kafka
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
-
 
   # API Gateway
   api_gateway:
-    build: ./api_gateway
+    build: 
+      context: ./api_gateway
+      dockerfile: docker/prod.Dockerfile
     ports:
       - 5000:8080
-    volumes:
-      - ./api_gateway:/app
     environment:
       - PORT=8080
       - SERVICE_POST_HOST=http://svc_post:8080
@@ -138,11 +104,6 @@ services:
       - svc_comment
       - svc_query
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
 
   stats:
     image: virtualzone/docker-container-stats
@@ -153,11 +114,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - data_stats:/opt/docker-stats/db
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.1'
-    #       memory: 128M
     profiles:
       - donotstart
 

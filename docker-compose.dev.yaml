@@ -1,0 +1,130 @@
+version: '3.9'
+
+services:
+  # Message Broker
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    restart: always
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - 9092:9092
+    volumes:
+      - data_kafka:/kafka
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LOG_DIRS=/logs
+    depends_on:
+      - zookeeper
+    restart: always
+  kafka_ui:
+    image: provectuslabs/kafka-ui
+    ports:  
+      - 8081:8080
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - zookeeper
+      - kafka
+    profiles:
+      - donotstart
+
+  # Databases
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - data_mongo:/data/db
+    restart: always
+
+  # Services
+  svc_post:
+    build: 
+      context: ./svc_post
+      dockerfile: docker/dev.Dockerfile
+    volumes:
+      - ./svc_post:/app
+    environment:
+      - PORT=8080
+      - MONGO_URL=mongodb://mongo:27017/svc_post
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+    restart: always
+
+  svc_comment:
+    build: 
+      context: ./svc_comment
+      dockerfile: docker/dev.Dockerfile
+    volumes:
+      - ./svc_comment:/app
+    environment:
+      - PORT=8080
+      - MONGO_URL=mongodb://mongo:27017/svc_comment
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+    restart: always
+
+  svc_query:
+    build: 
+      context: ./svc_query
+      dockerfile: docker/dev.Dockerfile
+    volumes:
+      - ./svc_query:/app
+    environment:
+      - PORT=8080
+      - MONGO_URL=mongodb://mongo:27017/svc_query
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+    restart: always
+
+
+  # API Gateway
+  api_gateway:
+    build: 
+      context: ./api_gateway
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - 5000:8080
+    volumes:
+      - ./api_gateway:/app
+    environment:
+      - PORT=8080
+      - SERVICE_POST_HOST=http://svc_post:8080
+      - SERVICE_COMMENT_HOST=http://svc_comment:8080
+      - SERVICE_QUERY_HOST=http://svc_query:8080 
+    depends_on:
+      - svc_post
+      - svc_comment
+      - svc_query
+    restart: always
+
+  stats:
+    image: virtualzone/docker-container-stats
+    ports:
+      - '8082:8080'
+    environment:
+      - STATS_UPDATE_INTERVAL=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - data_stats:/opt/docker-stats/db
+    profiles:
+      - donotstart
+
+
+volumes:
+  data_kafka:
+  data_mongo:
+  data_stats:
