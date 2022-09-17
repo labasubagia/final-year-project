@@ -1,0 +1,2 @@
+locust_plugins==2.6.10
+locustio==0.999
