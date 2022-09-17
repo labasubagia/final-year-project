@@ -70,12 +70,10 @@ app.get("/posts-api-comp-id-array", async (req, res) => {
 app.get("/posts-api-comp-parallel", async (req, res) => {
   try {
     let posts = await fetchPost(req.query.limit);
-    console.log({ p: posts.length });
     posts = await promiseAllInBatches(posts, os.cpus().length, async (post) => {
       post.comments = await fetchCommentsByPostId(post.post_id);
       return post;
     });
-    console.log({ posts });
     res.send(posts);
   } catch (error) {
     res.status(500).send({ error: error.message });
