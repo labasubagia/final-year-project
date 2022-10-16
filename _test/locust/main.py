@@ -5,8 +5,8 @@ from locust import HttpUser, task
 
 # Change this for test range of data size
 # Query test
-START = 1
-END = 1000
+START = 0
+END = 100
 STEP = 10
 
 # Comment url if you want disable test for it
