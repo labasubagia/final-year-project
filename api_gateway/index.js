@@ -37,6 +37,14 @@ const fetchCommentsByPostIds = async (postIds = []) => {
   return data ?? [];
 };
 
+app.use((req, res, next) => {
+  const limit = req.query?.limit;
+  if (Number(limit) <= 0) {
+    return res.json([]);
+  }
+  return next();
+});
+
 // Index
 app.get("/", (req, res) => res.send({ message: "Ok!" }));
 
