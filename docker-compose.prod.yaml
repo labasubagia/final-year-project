@@ -7,6 +7,8 @@ services:
     ports:
       - 2181:2181
     restart: always
+    profiles:
+      - donotstart
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -21,6 +23,8 @@ services:
     depends_on:
       - zookeeper
     restart: always
+    profiles:
+      - donotstart
   kafka_ui:
     image: provectuslabs/kafka-ui
     ports:  

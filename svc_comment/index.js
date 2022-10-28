@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const { Kafka } = require("kafkajs");
 
 const app = express();
 app.use(express.json({ limit: "500mb" }));
@@ -11,12 +10,6 @@ const Comment = new mongoose.model("Comment", {
   post_id: { type: mongoose.ObjectId, index: true },
   text: String,
 });
-
-const kafka = new Kafka({
-  clientId: "service_comment",
-  brokers: process.env.KAFKA_BOOTSTRAP_SERVERS.split(","),
-});
-const producer = kafka.producer();
 
 app.get("/comments", async (_, res) => {
   try {
@@ -65,12 +58,6 @@ app.post("/comments", async (req, res) => {
     const { post_id, text } = req.body;
     const comment = Comment({ post_id, text });
     await comment.save();
-
-    await producer.connect();
-    await producer.send({
-      topic: "CommentCreated",
-      messages: [{ value: JSON.stringify(comment) }],
-    });
     res.send(comment);
   } catch (error) {
     res.status(500).send({ error: error.message });

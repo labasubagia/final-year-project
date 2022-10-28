@@ -1,8 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const { Kafka } = require("kafkajs");
-
 const app = express();
 app.use(express.json({ limit: "500mb" }));
 app.use(cors());
@@ -57,7 +55,6 @@ const kafka = new Kafka({
   clientId: "service_query",
   brokers: process.env.KAFKA_BOOTSTRAP_SERVERS.split(","),
 });
-const consumer = kafka.consumer({ groupId: "service_query" });
 
 const postCreatedHandler = async ({ _id, title, body }) => {
   try {
@@ -187,31 +184,6 @@ app.get("/posts-query-manual", async (req, res) => {
 });
 
 mongoose.connect(process.env.MONGO_URL, { autoIndex: true }).then(async () => {
-  await consumer.connect();
-  await consumer.subscribe({
-    topic: PUBSUB_TOPIC_POST_CREATED,
-    fromBeginning: true,
-  });
-  await consumer.subscribe({
-    topic: PUBSUB_TOPIC_COMMENT_CREATED,
-    fromBeginning: true,
-  });
-  await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      const val = JSON.parse(message.value);
-      switch (topic) {
-        case PUBSUB_TOPIC_POST_CREATED:
-          postCreatedHandler(val);
-          break;
-        case PUBSUB_TOPIC_COMMENT_CREATED:
-          commentCreatedHandler(val);
-          break;
-        default:
-          break;
-      }
-    },
-  });
-
   app.listen(process.env.PORT, () => {
     console.log(`Listening at port ${process.env.PORT}`);
   });
