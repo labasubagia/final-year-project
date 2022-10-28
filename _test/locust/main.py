@@ -1,21 +1,23 @@
 '''Locust test'''
 
 import locust_plugins  # pylint: disable=unused-import
-from locust import HttpUser, task
+from locust import HttpUser, task, events
+from locust.runners import MasterRunner
+
 
 # Change this for test range of data size
 # Query test
 START = 0
-END = 100
-STEP = 10
+END = 1000
+STEP = 100
 
 # Comment url if you want disable test for it
 urls = [
     '/posts-api-comp-sequential',
     '/posts-api-comp-parallel',
     '/posts-api-comp-id-array',
-    '/posts-cqrs-query-agg',
     '/posts-cqrs-query-manual',
+    '/posts-cqrs-query-agg',
     '/posts-cqrs-materialize',
 ]
 
