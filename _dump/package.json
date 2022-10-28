@@ -6,7 +6,8 @@
   "scripts": {
     "generate": "node ./script/generate.js",
     "generate-db": "node ./script/generate-db.js",
-    "free-db": "node ./script/free-db.js"
+    "free-db": "node ./script/free-db.js",
+    "json-db": "node ./script/generate-json.js"
   },
   "keywords": [],
   "author": "",
