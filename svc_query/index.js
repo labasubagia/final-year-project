@@ -51,11 +51,6 @@ const postQuerySchema = new mongoose.Schema(
 );
 const PostQuery = new mongoose.model("Post_Query", postQuerySchema);
 
-const kafka = new Kafka({
-  clientId: "service_query",
-  brokers: process.env.KAFKA_BOOTSTRAP_SERVERS.split(","),
-});
-
 const postCreatedHandler = async ({ _id, title, body }) => {
   try {
     console.log({ post_id: _id, title, body });
