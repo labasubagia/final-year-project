@@ -42,6 +42,8 @@ services:
     ports:
       - 27017:27017
     restart: always
+    volumes:
+      - data_mongo:/data/db
 
   # Services
   svc_post:
