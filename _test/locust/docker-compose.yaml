@@ -7,7 +7,12 @@ services:
       - "8089:8089"
     volumes:
       - ./:/mnt/locust
-    command: -f /mnt/locust/single.py --master -H http://35.225.155.255:5000 --run-time=1m -u 100 -r 100
+    
+    # cloud, custom the ip
+    # command: -f /mnt/locust/single.py --master -H http://35.225.155.255:5000 --run-time=1m -u 100 -r 100
+
+    # local, see ip in using `ifconfig` find docker
+    command: -f /mnt/locust/single.py --master -H http://172.17.0.1:5000 --run-time=1m -u 100 -r 100
   
   worker:
     image: locustio/locust
