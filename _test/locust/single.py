@@ -5,12 +5,12 @@ from locust import HttpUser, task
 SIZE = 10
 
 urls = [
-    # '/posts-api-comp-sequential',
+    '/posts-api-comp-sequential',
     '/posts-api-comp-parallel',
-    # '/posts-api-comp-id-array',
-    # '/posts-cqrs-query-manual',
-    # '/posts-cqrs-query-agg',
-    # '/posts-cqrs-materialize',
+    '/posts-api-comp-id-array',
+    '/posts-cqrs-query-manual',
+    '/posts-cqrs-query-agg',
+    '/posts-cqrs-materialize',
 ]
 
 
