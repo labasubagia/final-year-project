@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const MONGO_SERVER = "mongodb://localhost:27017";
+const MONGO_SERVER = "mongodb://myuser:laba22@localhost:27017";
 
 class Service {
   constructor() {
@@ -17,7 +17,9 @@ class ServicePost extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_post`);
+    this.conn = mongoose.createConnection(
+      `${MONGO_SERVER}/svc_post?authSource=admin`
+    );
 
     this.postModel = this.conn.model("Post", {
       title: String,
@@ -32,7 +34,9 @@ class ServiceComment extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_comment`);
+    this.conn = mongoose.createConnection(
+      `${MONGO_SERVER}/svc_comment?authSource=admin`
+    );
 
     this.commentModel = this.conn.model("Comment", {
       post_id: { type: mongoose.ObjectId, index: true },
@@ -47,7 +51,9 @@ class ServiceQuery extends Service {
   constructor() {
     super();
 
-    this.conn = mongoose.createConnection(`${MONGO_SERVER}/svc_query`);
+    this.conn = mongoose.createConnection(
+      `${MONGO_SERVER}/svc_query?authSource=admin`
+    );
 
     this.commentModel = this.conn.model("Comment", {
       comment_id: { type: mongoose.ObjectId, index: true },

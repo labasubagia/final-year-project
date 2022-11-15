@@ -38,12 +38,15 @@ services:
 
   # Databases
   mongo:
-    image: mongo
+    image: mongo:latest
     ports:
       - 27017:27017
     restart: always
     volumes:
       - data_mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=myuser
+      - MONGO_INITDB_ROOT_PASSWORD=laba22
 
   # Services
   svc_post:
@@ -52,7 +55,7 @@ services:
       dockerfile: docker/prod.Dockerfile
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/svc_post
+      - MONGO_URL=mongodb://myuser:laba22@mongo:27017/svc_post?authSource=admin
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
@@ -65,7 +68,7 @@ services:
       dockerfile: docker/prod.Dockerfile
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/svc_comment
+      - MONGO_URL=mongodb://myuser:laba22@mongo:27017/svc_comment?authSource=admin
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
@@ -78,7 +81,7 @@ services:
       dockerfile: docker/prod.Dockerfile
     environment:
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/svc_query
+      - MONGO_URL=mongodb://myuser:laba22@mongo:27017/svc_query?authSource=admin
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - mongo
